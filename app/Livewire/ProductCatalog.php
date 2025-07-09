@@ -1,16 +1,20 @@
 <?php
-
+declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Models\Product;
 use Livewire\Component;
+use App\Data\ProductData;
 
 class ProductCatalog extends Component
 {
+   
     public function render()
     {
-        $products = Product::paginate(9);
-        // TODO Make a DTO
+        
+        $result = Product::paginate(1);
+        $products = ProductData::collect($result);
+        
         return view('livewire.product-catalog', compact('products'));
     }
 }
