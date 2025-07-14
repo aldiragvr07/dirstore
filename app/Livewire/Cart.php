@@ -29,14 +29,8 @@ class Cart extends Component
 
     public function checkout()
     {
-        try{
-            ValidateCartStock::run();
-
-            return redirect()->route('checkout');
-        } catch (ValidationException $e) {
-            session()->flash('error', $e->getMessage());
-            return redirect()->route('cart');
-        }
+        return redirect()->route('checkout');
+        
     }
     public function render()
     {
