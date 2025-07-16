@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Contract\CartServiceInterface;
 use App\Data\RegionData;
+use App\Data\ShippingData;
 use App\Models\Region;
 use App\Services\RegionQueryService;
+use App\Services\ShippingMethodService;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Number;
@@ -98,6 +100,24 @@ class Checkout extends Component
     public function updatedRegionSelectorRegionSelected($value)
     {
         data_set($this->data, 'destination_region_code', $value);
+    }
+
+    /** @return DataCollection<ShippingData> */
+    public function getShippingMethodsProperty(
+        RegionQueryService $region_query,
+        ShippingMethodService $shipping_service
+    ) : DataCollection{
+        if(! data_get($this->data, 'destination_region_code')) {
+            return new DataCollection(ShippingData::class, []);
+        }
+
+        $origin_code = config('shipping.shipping.origin_code');
+
+        return $shipping_service->getShippingMethods(
+            $region_query->searchRegionByCode($origin_code),
+            $region_query->searchRegionByCode(data_get($this->data, 'destination_region_code')),
+            $this->cart
+        );
     }
     public function placeAnOrder()
     {
