@@ -25,7 +25,7 @@ class RegionSeeder extends Seeder
                 'postal_code' => data_get($province, 'postal_code'),
                 'parent_code' => null
             ]);
-            $this->command->info("Fetching Regiscies for {$province["name"]}...");
+            $this->command->info("Fetching Regencies for {$province['name']}...");
             $regencies = Http::get("https://wilayah.id/api/regencies/{$province['code']}.json")->json('data');
             foreach($regencies as $regency){
                 Region::create([
@@ -35,8 +35,8 @@ class RegionSeeder extends Seeder
                     'postal_code' => data_get($regency, 'postal_code'),
                     'parent_code' => data_get($province, 'code')
                 ]);
-                $this->command->info("Fetching Districts for {$regency["name"]}...");
-                $districts = Http::get("https://wilayah.id/api/district/{$regency['code']}.json")->json('data');   
+                $this->command->info("Fetching Districts for {$regency['name']}...");
+                $districts = Http::get("https://wilayah.id/api/districts/{$regency['code']}.json")->json('data');   
                 foreach($districts as $district){
                     Region::create([
                         'code' => data_get($district, 'code'),
@@ -45,7 +45,7 @@ class RegionSeeder extends Seeder
                         'postal_code' => data_get($district, 'postal_code'),
                         'parent_code' => data_get($regency, 'code')
                     ]);
-                    $this->command->info("Fetching Villages for {$district["name"]}...");
+                    $this->command->info("Fetching Villages for {$district['name']}...");
                     $villages = Http::get("https://wilayah.id/api/villages/{$district['code']}.json")->json('data');
                     foreach($villages as $village){
                         Region::create([

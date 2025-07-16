@@ -3,9 +3,13 @@
 namespace App\Livewire;
 
 use App\Contract\CartServiceInterface;
+use App\Data\RegionData;
+use App\Models\Region;
+use App\Services\RegionQueryService;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Number;
+use Spatie\LaravelData\DataCollection;
 
 class Checkout extends Component
 {
@@ -13,7 +17,13 @@ class Checkout extends Component
         'full_name' => null,
         'email' => null,
         'phone' => null,
-        'address_line' => null
+        'address_line' => null,
+        'destination_region_code' => null
+    ];
+
+    public array $region_selector = [
+        'keyword' => null,
+        'region_selected' => null
     ];
 
     public array $summeries = [
@@ -39,7 +49,8 @@ class Checkout extends Component
             'data.full_name' => ['required', 'min:3', 'max:250'],
             'data.email' => ['required', 'min:3', 'max:250', 'email'],
             'data.phone' => ['required', 'min:7', 'max:250', ],
-            'data.shipping_line' => ['required', 'min:3', 'max:250']
+            'data.shipping_line' => ['required', 'min:3', 'max:250'],
+            'data.destination_region_code' => ['required']
         ];
     }
 
@@ -62,6 +73,32 @@ class Checkout extends Component
         return $cart->all();
     }
 
+    public function getRegionsProperty(RegionQueryService $query_service) : DataCollection
+    {
+
+        if (!data_get($this->region_selector, 'keyword')) {
+            $data = [];
+            return new DataCollection(RegionData::class, []);
+        }
+
+        return $query_service->SearchRegionByName(
+            data_get($this->region_selector, 'keyword')
+        );
+    }
+
+    public function getRegionProperty(RegionQueryService $query_service) : ?RegionData
+    {
+        $region_selected = data_get($this->region_selector, 'region_selected');
+        if (!$region_selected){
+            return null;
+        }
+        return $query_service->searchRegionByCode($region_selected);
+    }
+
+    public function updatedRegionSelectorRegionSelected($value)
+    {
+        data_set($this->data, 'destination_region_code', $value);
+    }
     public function placeAnOrder()
     {
         $this->validate();
