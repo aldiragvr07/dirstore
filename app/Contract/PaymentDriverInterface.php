@@ -9,10 +9,9 @@ interface PaymentDriverInterface
 {
     public function getMethods() : DataCollection;
 
-
     public function process($sales_order);
 
-    public function shouldShhowPayNowButton($sales_order) : bool;
+    public function shouldShowPayNowButton($sales_order) : bool;
 
     public function getRedirectUrl($sales_order) : ?string;
 }
