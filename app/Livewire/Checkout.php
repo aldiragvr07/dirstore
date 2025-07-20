@@ -2,16 +2,18 @@
 
 namespace App\Livewire;
 
-use App\Contract\CartServiceInterface;
+use App\Models\Region;
+use Livewire\Component;
 use App\Data\RegionData;
 use App\Data\ShippingData;
-use App\Models\Region;
-use App\Services\RegionQueryService;
-use App\Services\ShippingMethodService;
-use Livewire\Component;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Number;
+use Illuminate\Support\Collection;
+use App\Services\RegionQueryService;
+use Illuminate\Support\Facades\Gate;
+use App\Contract\CartServiceInterface;
+use App\Rules\ValidShippingHash;
 use Spatie\LaravelData\DataCollection;
+use App\Services\ShippingMethodService;
 
 class Checkout extends Component
 {
@@ -20,12 +22,17 @@ class Checkout extends Component
         'email' => null,
         'phone' => null,
         'address_line' => null,
-        'destination_region_code' => null
+        'destination_region_code' => null,
+        'shipping_hash' => null
     ];
 
     public array $region_selector = [
         'keyword' => null,
         'region_selected' => null
+    ];
+
+    public array $shipping_selector = [
+        'shipping_method' => null
     ];
 
     public array $summeries = [
@@ -50,9 +57,10 @@ class Checkout extends Component
         return [
             'data.full_name' => ['required', 'min:3', 'max:250'],
             'data.email' => ['required', 'min:3', 'max:250', 'email'],
-            'data.phone' => ['required', 'min:7', 'max:250', ],
+            'data.phone' => ['required', 'min:7', 'max:13', ],
             'data.shipping_line' => ['required', 'min:3', 'max:250'],
-            'data.destination_region_code' => ['required']
+            'data.destination_region_code' => ['required','exists:regions,code'],
+            'data.shipping_hash' => ['required', new ValidShippingHash()]
         ];
     }
 
@@ -61,7 +69,7 @@ class Checkout extends Component
         data_set($this->summeries, 'sub_total', $this->cart->total);
         data_set($this->summeries, 'sub_total_formatted', $this->cart->total_formatted);
 
-        $shipping_cost = 0;
+        $shipping_cost = $this->shippingMethod?->cost ?? 0;
         data_set($this->summeries, 'shipping_total', $shipping_cost);
         data_set($this->summeries, 'shipping_total_formatted', Number::currency($shipping_cost));
 
@@ -106,18 +114,46 @@ class Checkout extends Component
     public function getShippingMethodsProperty(
         RegionQueryService $region_query,
         ShippingMethodService $shipping_service
-    ) : DataCollection{
-        if(! data_get($this->data, 'destination_region_code')) {
+    ) : DataCollection|Collection{
+        if(!data_get($this->data, 'destination_region_code')) {
             return new DataCollection(ShippingData::class, []);
         }
 
-        $origin_code = config('shipping.shipping.origin_code');
+        $origin_code = config('shipping.shipping_origin_code');
 
         return $shipping_service->getShippingMethods(
             $region_query->searchRegionByCode($origin_code),
             $region_query->searchRegionByCode(data_get($this->data, 'destination_region_code')),
             $this->cart
+        )->toCollection()->groupBy('service');
+    }
+
+    public function getShippingMethodProperty(
+        ShippingMethodService $shipping_service
+    ) : ?ShippingData 
+    {
+        if (
+            empty(data_get($this->data, 'shipping_hash')) ||
+            empty(data_get($this->data, 'destination_region_code'))
+        ) {
+            return null;
+        }
+        $data = $shipping_service->getShippingMethod(
+            data_get($this->data, 'shipping_hash')
         );
+
+        if ($data == null) {
+            $this->addError('shipping_hash', "Shipping Cost Missing");
+            redirect()->route('checkout');
+        }
+        return $data;
+    }
+    
+
+    public function updatedShippingSelectorShippingMethod($value)
+    {
+        data_set($this->data, 'shipping_hash', $value);
+        $this->calculateTotal();
     }
     public function placeAnOrder()
     {
