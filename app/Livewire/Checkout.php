@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\Region;
 use Livewire\Component;
 use App\Data\RegionData;
+use App\Data\CheckoutData;
+use App\Data\CustomerData;
 use App\Data\ShippingData;
 use Illuminate\Support\Number;
 use App\Rules\ValidShippingHash;
@@ -181,8 +183,23 @@ class Checkout extends Component
 
     public function placeAnOrder()
     {
-        $this->validate();
-        dd($this->data);
+        $validated = $this->validate();
+        $shipping_method = app(ShippingMethodService::class)->getShippingMethod(
+            data_get($validated, 'data.shipping_hash')
+        );
+        $payment_method = app(PaymentMethodQueryService::class)->getPaymentMethodByHash(
+            data_get($validated, 'data.payment_method_hash')
+        );
+
+        $checkout = CheckoutData::from([
+            'customer' => CustomerData::from(data_get($validated, 'data')),
+            'address_line' => data_get($validated, 'data.address_line'),
+            'origin' => $shipping_method->origin,
+            'destination' => $shipping_method->destination,
+            'cart' => $this->cart,
+            'shipping' => $shipping_method,
+            'payment' => data_get($validated, 'payment_method_hash')
+        ]);
     }
     public function render()
     {
