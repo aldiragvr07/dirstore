@@ -38,6 +38,13 @@ class ProductCatalog extends Component
             'sort_by' => 'in:newest,latest,price_asc,price_desc'
         ];
    }
+   protected function validationAttributes()
+   {
+       return[
+            'select_collections' => 'Collections',
+            'sort_by' => 'Sort By'
+       ];
+   }
 
    public function applyFilters()
    {

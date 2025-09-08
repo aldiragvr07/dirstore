@@ -15,6 +15,7 @@ use App\Services\RegionQueryService;
 use Illuminate\Support\Facades\Gate;
 use App\Rules\ValidPaymentMethodHash;
 use App\Contract\CartServiceInterface;
+use App\Services\CheckoutService;
 use Spatie\LaravelData\DataCollection;
 use App\Services\ShippingMethodService;
 use App\Services\PaymentMethodQueryService;
@@ -74,6 +75,19 @@ class Checkout extends Component
             'data.destination_region_code' => ['required','exists:regions,code'],
             'data.shipping_hash' => ['required', new ValidShippingHash()],
             'data.payment_method_hash' => ['required', new ValidPaymentMethodHash()],
+        ];
+    }
+
+    protected function getValidationAttributes()
+    {
+        return [
+            'data.full_name' => 'Full Name',
+            'data.email' => 'Email',
+            'data.phone' => 'Phone',
+            'data.address_line' => 'Address',
+            'data.destination_region_code' => 'Region',
+            'data.shipping_hash' => 'Shipping Method',
+            'data.payment_method_hash' => 'Payment Method',
         ];
     }
 
@@ -181,7 +195,9 @@ class Checkout extends Component
         data_set($this->data, 'payment_method_hash', $value);
     }
 
-    public function placeAnOrder()
+    public function placeAnOrder(
+        CartServiceInterface $cart
+    )
     {
         $validated = $this->validate();
         $shipping_method = app(ShippingMethodService::class)->getShippingMethod(
@@ -198,8 +214,14 @@ class Checkout extends Component
             'destination' => $shipping_method->destination,
             'cart' => $this->cart,
             'shipping' => $shipping_method,
-            'payment' => data_get($validated, 'payment_method_hash')
+            'payment' => $payment_method
         ]);
+
+        $service = app(CheckoutService::class);
+        $sales_order = $service->makeAnOrder($checkout);
+        $cart->clear();
+
+        return redirect()->route('order-confirmed', $sales_order->trx_id);
     }
     public function render()
     {

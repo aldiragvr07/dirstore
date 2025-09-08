@@ -30,6 +30,6 @@ class CheckoutData extends Data
     ) {
         $this->sub_total =$cart->total;
         $this->shipping_cost = $shipping->cost;
-        $this->grand_total = $this->sub_total = $this->shipping_cost;
+        $this->grand_total = $this->sub_total + $this->shipping_cost;
     }
 }
