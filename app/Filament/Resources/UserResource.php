@@ -8,6 +8,7 @@ use App\Models\User;
 use Dom\Text;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -38,6 +39,11 @@ class UserResource extends Resource
                     ->email()
                     ->unique(ignoreRecord: true)
                     ->inlineLabel(),
+                Select::make('roles')
+                    ->required()
+                    ->multiple()
+                    ->preload()
+                    ->relationship('roles', 'name'),
                 Fieldset::make('Password')
                     ->schema([
                         TextInput::make('password')

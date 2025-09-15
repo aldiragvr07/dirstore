@@ -55,7 +55,8 @@ class BackPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->plugin(
+            ->plugins([
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
                 BreezyCore::make()
                  ->myProfile(
                     shouldRegisterUserMenu: true, // Sets the 'account' link in the panel User Menu (default = true)
@@ -64,7 +65,7 @@ class BackPanelProvider extends PanelProvider
                     navigationGroup: 'Settings', // Sets the navigation group for the My Profile page (default = null)
                     hasAvatars: false, // Enables the avatar upload form component (default = false)
                     slug: 'my-profile' // Sets the slug for the profile page (default = 'my-profile')
-                )
+            )]
             );
     }
 }
