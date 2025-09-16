@@ -28,11 +28,46 @@ class APIKurirShippingDriver implements ShippingDriverInterface
             'courier'   => 'JNE',
             'service'   => 'Reguler'
         ],
+            ['driver' => $this->driver,
+            'code'  => 'jne-reguler-express',
+            'courier'   => 'JNE',
+            'service'   => 'Express'
+        ],
         [
             'driver' => $this->driver,
             'code'  => 'jne-same-day',
             'courier'   => 'JNE',
             'service'   => 'Sameday'
+        ],
+        [
+            'driver' => $this->driver,
+            'code'  => 'ninja-xpress-reguler',
+            'courier'   => 'Ninja Xpress',
+            'service'   => 'Reguler'
+        ],
+        [
+            'driver' => $this->driver,
+            'code'  => 'ninja-xpress-express',
+            'courier'   => 'Ninja Xpress',
+            'service'   => 'Express'
+        ],
+        [
+            'driver' => $this->driver,
+            'code'  => 'ninja-xpress-cargo',
+            'courier'   => 'Ninja Xpress',
+            'service'   => 'Cargo'
+        ],
+        [
+            'driver' => $this->driver,
+            'code'  => 'ninja-xpress-instant',
+            'courier'   => 'Ninja Xpress',
+            'service'   => 'Instant'
+        ],
+        [
+            'driver' => $this->driver,
+            'code'  => 'grab-instant',
+            'courier'   => 'Grab',
+            'service'   => 'Instant'
         ]
         ], DataCollection::class);
     }
@@ -45,13 +80,12 @@ class APIKurirShippingDriver implements ShippingDriverInterface
     ) : ?ShippingData
     {
         $response = Http::withBasicAuth(
-            
             config('shipping.apikurir.username'),
             config('shipping.apikurir.password')           
         )->post('https://sandbox.apikurir.id/shipments/v1/open-api/rates',[
             'isUseInsurance' => true,
             'isPickup'  => true,
-            'isCode'    => false,
+            'isCod'    => false,
             'dimensions' => [10, 10, 10],
             'weight'    => $cart->total_weight,
             'packagePrice'  => $cart->total,
@@ -61,8 +95,8 @@ class APIKurirShippingDriver implements ShippingDriverInterface
             'destination' => [
                 'postalCode' => $destination->postal_code
             ],
-            'logistics' => ["JNE", "SAP Logistic", "Ninja Xpress"],
-            'services' => ["Regular","Express","Same Day"]
+            'logistics' => [$shipping_service->courier],
+            'services' => [$shipping_service->service]
         ]);
         $data = $response->collect('data')->flatten(1)->values()->first();
         if (empty($data)){

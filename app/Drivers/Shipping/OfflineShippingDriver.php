@@ -22,20 +22,7 @@ class OfflineShippingDriver implements ShippingDriverInterface
     public function getServices() : DataCollection
     {
         return ShippingServiceData::collect([
-            [
-                'driver' => $this->driver,
-                'code' => 'offline-flat-15',
-                'courier' => 'Internal Courier',
-                'service' => 'Instant'
-
-            ],
-            [
-                'driver' => $this->driver,
-                'code' => 'offline-flat-5',
-                'courier' => 'Internal Courier',
-                'service' => 'SameDay'
-
-            ]
+           
             ], DataCollection::class);
     }
 

@@ -17,6 +17,7 @@
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.6",
         "lorisleiva/laravel-actions": "^2.9",
+        "spatie/laravel-activitylog": "^4.10",
         "spatie/laravel-data": "^4.17",
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-model-states": "^2.11",
